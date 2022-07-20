@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import ActorGrid from "../components/actor/ActorGrid";
 import CustomRadio from "../components/CustomRadio";
 import MainPageLayout from "../components/MainPageLayout";
@@ -7,6 +7,19 @@ import { apiGet } from "../misc/config";
 import { useLastQuery } from "../misc/custom-hooks";
 import { RadioInputsWrapper, SearchButtonWrapper, SearchInput } from "./Home.styled";
 
+const renderResults = (results) => {
+    if(results && results.length === 0)
+    {
+        return <div>
+            no results
+        </div>
+    }
+    if(results && results.length > 0)
+    {
+        return results[0].show ? ( <ShowGrid data = {results}/>) : ( <ActorGrid data = {results} /> );   
+    }
+    return null;
+}
 
 
 const Home = () => {
@@ -16,19 +29,24 @@ const Home = () => {
 
     const isShowsSearch = searchOption === 'shows'
 
-    const onInputChange = (ev) => {
-        setInput(ev.target.value);
-
-    }
-
     const onSearch = () => {
     
         apiGet(`/search/${searchOption}?q=${input}`).then(result => {
             setResults(result);
             console.log(result);
         })
-
     };
+
+    
+
+    const onInputChange = useCallback (
+        ev => {
+            setInput(ev.target.value);
+    
+        }, [setInput]
+    )
+
+
 
     const onKeyDown = (ev) => {
         if (ev.keyCode === 13)
@@ -38,35 +56,16 @@ const Home = () => {
         
     }
 
-    const onRadiochange = (ev) => {
-        setSearchOption(ev.target.value);
-        console.log(searchOption);
-    }
+    const onRadiochange = useCallback(
+        ev => {
+            setSearchOption(ev.target.value);
+           
+        }, []) 
 
     
 
-    const renderResults = () => {
 
-
-        if(results && results.length === 0)
-        {
-            return <div>
-                no results
-            </div>
-        }
-
-        if(results && results.length > 0)
-        {
-            return results[0].show ? ( <ShowGrid data = {results}/>) : ( <ActorGrid data = {results} /> );
-            
-              
-         
-        }
-
-        return null;
-    }
-
-
+    //useWhyDidYouUpdate('home', { onInputChange, onKeyDown })
 
     return (
         <MainPageLayout> 
@@ -104,7 +103,7 @@ const Home = () => {
             </button>
             </SearchButtonWrapper>
 
-            {renderResults()}
+            {renderResults(results)}
       
         </MainPageLayout>
     );
